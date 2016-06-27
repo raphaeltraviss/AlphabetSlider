@@ -2,9 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:../../Downloads/SliderWithTicks/SliderWithTicks.xcodeproj">
-   </FileRef>
-   <FileRef
       location = "group:AlphabetSliderExample/AlphabetSliderExample.xcodeproj">
    </FileRef>
    <FileRef
