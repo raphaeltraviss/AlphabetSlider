@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:../../Downloads/SliderWithTicks/SliderWithTicks.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:AlphabetSliderExample/AlphabetSliderExample.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:AlphabetSlider/AlphabetSlider.xcodeproj">
+   </FileRef>
+</Workspace>
