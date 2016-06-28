@@ -53,6 +53,14 @@ public class AlphabetSlider: UIControl {
     
     
     
+    // MARK: private view/layer relationships
+    
+    let indicator = LocationIndicator()
+    
+    
+    
+    // MARK: UIControl overrides
+    
     public override func beginTrackingWithTouch(touch: UITouch, withEvent event: UIEvent?) -> Bool {
         // @todo: move the thumb layer and value to this location.
         previousLocation = touch.locationInView(self)
@@ -97,9 +105,38 @@ public class AlphabetSlider: UIControl {
 //        }
     }
     
+    
+    
+    // MARK: Initialization
+    
+    private func initialize() {
+        // @todo: how do we know where to put the origin of the indicator?
+        // We can't know this until we know where the first letter is, which
+        // happends after this initialization.
+        let indicatorFrame = CGRect(origin: CGPoint(x: CGFloat(-20.0), y: CGFloat(0.0)), size: CGSize(width: 100, height: 100))
+        indicator.frame = indicatorFrame
+        layer.addSublayer(indicator)
+        indicator.highlighted = true
+    }
+    
+    public override init(frame: CGRect) {
+        super.init(frame: frame)
+        initialize()
+    }
+    
+    required public init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        initialize()
+    }
+    
+    
+    
+    // MARK: drawing code
+    
     public override func drawRect(rect: CGRect) {
         guard alphabet.count > 0 else { return }
         let spacePerLetter = bounds.width / CGFloat(alphabet.count)
+
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = .Center
         

@@ -7,11 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		649061E41D231793002D3285 /* LocationIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 649061E31D231793002D3285 /* LocationIndicator.swift */; };
 		64B2BC591D1D7E2E00729647 /* AlphabetSlider.h in Headers */ = {isa = PBXBuildFile; fileRef = 64B2BC581D1D7E2E00729647 /* AlphabetSlider.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		64B2BC9E1D1D7F0600729647 /* AlphabetSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64B2BC9D1D1D7F0600729647 /* AlphabetSlider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		649061E31D231793002D3285 /* LocationIndicator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationIndicator.swift; sourceTree = "<group>"; };
 		64B2BC551D1D7E2E00729647 /* AlphabetSlider.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AlphabetSlider.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		64B2BC581D1D7E2E00729647 /* AlphabetSlider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AlphabetSlider.h; sourceTree = "<group>"; };
 		64B2BC5A1D1D7E2E00729647 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -29,6 +31,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		649061E51D2317F0002D3285 /* Style */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Style;
+			sourceTree = "<group>";
+		};
 		64B2BC4B1D1D7E2E00729647 = {
 			isa = PBXGroup;
 			children = (
@@ -49,8 +58,10 @@
 			isa = PBXGroup;
 			children = (
 				64B2BC9D1D1D7F0600729647 /* AlphabetSlider.swift */,
+				649061E31D231793002D3285 /* LocationIndicator.swift */,
 				64B2BC581D1D7E2E00729647 /* AlphabetSlider.h */,
 				64B2BC5A1D1D7E2E00729647 /* Info.plist */,
+				649061E51D2317F0002D3285 /* Style */,
 			);
 			path = AlphabetSlider;
 			sourceTree = "<group>";
@@ -134,6 +145,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				64B2BC9E1D1D7F0600729647 /* AlphabetSlider.swift in Sources */,
+				649061E41D231793002D3285 /* LocationIndicator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
