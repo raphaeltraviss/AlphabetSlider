@@ -38,11 +38,23 @@ public class AlphabetSlider: UIControl {
     
     private var internalValue: Double = 0.0
     
-    public var value: Int = 0 { didSet { setNeedsDisplay() } }
+    private var storedValue: Int = 0
+    
+    public var value: Int {
+        get {
+            return storedValue
+        }
+        set {
+            storedValue = newValue
+            internalValue = Double(newValue)
+            setNeedsDisplay()
+        }
+    }
     
     
     
     public override func beginTrackingWithTouch(touch: UITouch, withEvent event: UIEvent?) -> Bool {
+        // @todo: move the thumb layer and value to this location.
         previousLocation = touch.locationInView(self)
         return true
     }
@@ -56,14 +68,15 @@ public class AlphabetSlider: UIControl {
         
         previousLocation = location
         
+        // @todo: move the thumb layer's frame by X amount.
 
         internalValue += deltaValue
         internalValue = min(max(internalValue, 0), Double(alphabet.count - 1))
         
         let newValue = Int(internalValue)
         
-        if newValue != value {
-            value = newValue
+        if newValue != storedValue {
+            storedValue = newValue
             self.sendActionsForControlEvents(.ValueChanged)
             setNeedsDisplay()
         }
@@ -72,6 +85,7 @@ public class AlphabetSlider: UIControl {
     }
     
     public override func endTrackingWithTouch(touch: UITouch?, withEvent event: UIEvent?) {
+        // @todo: animate the thumb layer to the nearest letter.
         
 //        UIView.animateWithDuration(0.4, delay: 0.0, usingSpringWithDamping: 7, initialSpringVelocity: 15, options: [], animations: { () -> Void in
 //            let roundValue = round(self.value)
@@ -117,7 +131,7 @@ public class AlphabetSlider: UIControl {
         
         for (index, letter) in alphabet.enumerate() {
             let xPosition = spacePerLetter * CGFloat(index)
-            if index == value {
+            if index == storedValue {
                 focusLetter.drawInRect(CGRect(origin: CGPoint(x: xPosition, y: focusHeight), size: CGSize(width: letterWidth, height: focusHeight)))
             } else {
                 let letterString = NSAttributedString(string: letter, attributes: attributes)

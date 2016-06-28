@@ -9,7 +9,12 @@ class ExampleController: UIViewController {
 
     @IBOutlet weak var collection: UICollectionView!
     
+    private var indexIsScrolling = false
+    
+    private var internalValue: Int = 0
+        
     func scrollToIndex(sender: AlphabetSlider) {
+        indexIsScrolling = true
         let indexPath = NSIndexPath(forItem: 0, inSection: sender.value)
         collection.scrollToItemAtIndexPath(indexPath, atScrollPosition: .CenteredVertically, animated: true)
     }
@@ -48,8 +53,15 @@ extension ExampleController: UICollectionViewDataSource {
 }
 
 extension ExampleController: UICollectionViewDelegate {
+    // Disable the index scroll lock when the user scrolls the collection themselves.
+    func scrollViewWillBeginDragging(scrollView: UIScrollView) {
+        indexIsScrolling = false
+    }
+    
+    // When a user is scrolling the collection, update the index view's value.
     func collectionView(collectionView: UICollectionView, willDisplayCell cell: UICollectionViewCell, forItemAtIndexPath indexPath: NSIndexPath) {
-        let letter = indexPath.section
-        indexSlider.value = letter
+        internalValue = indexPath.section
+        guard !indexIsScrolling else { return }
+        indexSlider.value = internalValue
     }
 }
