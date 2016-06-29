@@ -46,8 +46,8 @@ public class AlphabetSlider: UIControl {
         return UIFont(name: fontName, size: fontSize) ?? UIFont.preferredFontForTextStyle(UIFontTextStyleHeadline)
     } }
     
-    public var horizonalInset = CGFloat(10.0)
-    public var baselineOffset = CGFloat(10.0)
+    public var horizonalInset = CGFloat(50.0)
+    public var baselineOffset = CGFloat(0.0)
     
     
     
@@ -55,40 +55,56 @@ public class AlphabetSlider: UIControl {
     
     private var previousLocation = CGPoint()
     
-    private var internalValue: Double = 0.0
+    // Keep track of the precise value, from 0 to alphabet.count.
+    private var internalValue: Double = 0.0 {
+        didSet {
+            internalValue = min(max(internalValue, 0), Double(alphabet.count - 1))
+            let newValue = Int(internalValue)
+            
+            if newValue != storedValue {
+                storedValue = newValue
+                self.sendActionsForControlEvents(.ValueChanged)
+                setNeedsDisplay()
+            }
+        }
+    }
     
     private var storedValue: Int = 0
+    
+    private var workingWidth: CGFloat {
+        return bounds.width - (horizonalInset * 2)
+    }
     
     
     
     // MARK: UIControl overrides
     
     public override func beginTrackingWithTouch(touch: UITouch, withEvent event: UIEvent?) -> Bool {
-        // @todo: move the thumb layer and value to this location.
         previousLocation = touch.locationInView(self)
+        let xPos = previousLocation.x
+        
+        // Convert the touched point to the drawn letter index.
+        let spacePerLetter = workingWidth / CGFloat(alphabet.count + 1)
+        let index = (xPos - horizonalInset - spacePerLetter / 2) / spacePerLetter
+
+        internalValue = Double(index)
         return true
     }
     
     public override func continueTrackingWithTouch(touch: UITouch, withEvent event: UIEvent?) -> Bool {
         let location = touch.locationInView(self)
+        let xPos = location.x
+        guard xPos > horizonalInset && xPos < bounds.width - horizonalInset else { return false }
         
         // Track how much user has dragged
-        let deltaLocation = Double(location.x - previousLocation.x)
-        let deltaValue = Double(alphabet.count) * deltaLocation / Double(bounds.width)
+        let deltaDistance = Double(xPos - previousLocation.x)
+        
+        // Translate the touch delta into the actual working width of the drawn alphabet.
+        let deltaValue = Double(alphabet.count) * deltaDistance / Double(workingWidth)
         
         previousLocation = location
-        
         internalValue += deltaValue
-        internalValue = min(max(internalValue, 0), Double(alphabet.count - 1))
         
-        let newValue = Int(internalValue)
-        
-        if newValue != storedValue {
-            storedValue = newValue
-            self.sendActionsForControlEvents(.ValueChanged)
-            setNeedsDisplay()
-        }
-
         return true
     }
     
@@ -117,58 +133,30 @@ public class AlphabetSlider: UIControl {
     public override func drawRect(rect: CGRect) {
         guard alphabet.count > 0 else { return }
 
-        let paragraph = NSMutableParagraphStyle()
-//        paragraph.alignment = .Center
-        
         // Paint over our previous drawing.
         backgroundColor?.setFill()
         
         let attributes = [
             NSForegroundColorAttributeName: fontColor,
-            NSFontAttributeName: font,
-            NSParagraphStyleAttributeName: paragraph,
-            NSBackgroundColorAttributeName: UIColor.orangeColor()
+            NSFontAttributeName: font
         ]
         let focusAttributes = [
             NSForegroundColorAttributeName: focusFontColor,
-            NSFontAttributeName: focusFont,
-            NSParagraphStyleAttributeName: paragraph,
-            NSBackgroundColorAttributeName: UIColor.orangeColor()
+            NSFontAttributeName: focusFont
         ]
-        
-        // Deduce the height of our letters for bottom alignment.
-        let focusLetter = NSAttributedString(string: alphabet[value], attributes: focusAttributes)
-        let focusLetterSize = focusLetter.size()
-        let focusHeight = bounds.height - focusLetterSize.height
-        let yPosition = focusLetterSize.height - baselineOffset
-        
-        // Deduce the width of our letters for use with drawInRect
-        let letterWidth = NSAttributedString(string: "M", attributes: attributes).size().width
-        
-        // Deduce the width of our final letter for centering.
-        let lastWidth = NSAttributedString(string: alphabet.last!, attributes: attributes).size().width
-        
-        // Deduce our actual spacing per letter to keep the alphabet centered.
-        let workingWidth = bounds.width - (horizonalInset * 2)
-        let idealSpacePerLetter = workingWidth / CGFloat(alphabet.count) // Ideal spacing for a monospace font.
-        let realWidth = (idealSpacePerLetter * (CGFloat(alphabet.count) - CGFloat(1.0))) + (lastWidth / 2) // Adjusted width, subsituting the last ideal width for the actual width.
-        let spacePerLetter = realWidth / (CGFloat(alphabet.count) - 1)
-        
-        // Deduce the inset needed to center the alphabet.
-        let alphabetInset = workingWidth - spacePerLetter * (CGFloat(alphabet.count) - 1)
-        
-        // @todo: cache our realWidth, so we can do a ratio with the dragging locations.
-        
+
+        // Calculate spacing that will automatically center the alphabet.
+        let spacePerLetter = workingWidth / CGFloat(alphabet.count + 1)
         
         for (index, letter) in alphabet.enumerate() {
-            let xPosition = spacePerLetter * CGFloat(index) + horizonalInset + alphabetInset / 2
+            let theAttributes = index == storedValue ? focusAttributes : attributes
+            let letterString = NSAttributedString(string: alphabet[index], attributes: theAttributes)
             
-            if index == storedValue {
-                focusLetter.drawInRect(CGRect(origin: CGPoint(x: xPosition, y: yPosition), size: CGSize(width: focusLetterSize.width, height: focusHeight)))
-            } else {
-                let letterString = NSAttributedString(string: letter, attributes: attributes)
-                letterString.drawInRect(CGRect(origin: CGPoint(x: xPosition, y: yPosition), size: CGSize(width: letterWidth, height: focusHeight)))
-            }
+            let letterSize = letterString.size()
+            let letterCenterDistance = letterSize.width / 2
+            let yPosition = bounds.height / 2 - baselineOffset - letterSize.height / 2
+            let xPosition = spacePerLetter * (CGFloat(index) + 1) + horizonalInset - letterCenterDistance
+            letterString.drawInRect(CGRect(origin: CGPoint(x: xPosition, y: yPosition), size: CGSize(width: letterSize.width, height: letterSize.height)))
         }
     }
 }

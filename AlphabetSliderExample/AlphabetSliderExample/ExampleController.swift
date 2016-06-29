@@ -3,7 +3,7 @@ import AlphabetSlider
 
 class ExampleController: UIViewController {
     
-    private let alphabet: [String] = "MM".characters.map() { return String($0) }
+    private let alphabet: [String] = "1234567890ABCDEFGHIJKL-?%)(_#$%^@".characters.map() { return String($0) }
     
     @IBOutlet weak var indexSlider: AlphabetSlider!
 
