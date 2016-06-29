@@ -8,10 +8,11 @@
 
 import Foundation
 
+@IBDesignable
 public class AlphabetSlider: UIControl {
     
     // MARK: public API and data model
-    public var alphabet: [String] = "ABCDEFGHiiimmmmQRSTUVWXYZ".characters.map() { return String($0) } {
+    public var alphabet: [String] = "12345ABCDEFG!@#$%^&*()_.XYZ".characters.map() { return String($0) } {
         didSet { setNeedsDisplay() }
     }
     
@@ -30,24 +31,24 @@ public class AlphabetSlider: UIControl {
     
     // MARK: public display properties.
     
-    public var fontName = ""
-    public var fontSize: CGFloat = -1.0 // Intentionally invalid starting value.
-    public var fontColor = UIColor.darkGrayColor()
+    @IBInspectable public var fontName: String = ""
+    @IBInspectable public var fontSize: CGFloat = -1.0 // Intentionally invalid values as default.
+    @IBInspectable public var fontColor = UIColor.darkGrayColor()
     
-    public var focusFontName = ""
-    public var focusFontSize: CGFloat = -1.0
-    public var focusFontColor = UIColor.lightGrayColor()
+    @IBInspectable public var focusFontName: String = ""
+    @IBInspectable public var focusFontSize: CGFloat = -1.0
+    @IBInspectable public var focusFontColor = UIColor.lightGrayColor()
     
-    public var font: UIFont { get {
+    private var font: UIFont { get {
         return UIFont(name: fontName, size: fontSize) ?? UIFont.preferredFontForTextStyle(UIFontTextStyleSubheadline)
     } }
     
-    public var focusFont: UIFont { get {
-        return UIFont(name: fontName, size: fontSize) ?? UIFont.preferredFontForTextStyle(UIFontTextStyleHeadline)
+    private var focusFont: UIFont { get {
+        return UIFont(name: focusFontName, size: focusFontSize) ?? UIFont.preferredFontForTextStyle(UIFontTextStyleHeadline)
     } }
     
-    public var horizonalInset = CGFloat(50.0)
-    public var baselineOffset = CGFloat(0.0)
+    @IBInspectable public var horizonalInset: CGFloat = 0.0
+    @IBInspectable public var baselineOffset: CGFloat = 0.0
     
     
     
@@ -94,13 +95,15 @@ public class AlphabetSlider: UIControl {
     public override func continueTrackingWithTouch(touch: UITouch, withEvent event: UIEvent?) -> Bool {
         let location = touch.locationInView(self)
         let xPos = location.x
+        
+        // If the touch was out-of-bounds, end tracking.
         guard xPos > horizonalInset && xPos < bounds.width - horizonalInset else { return false }
         
-        // Track how much user has dragged
+        // Track how much the user has dragged, in global coordinate space.
         let deltaDistance = Double(xPos - previousLocation.x)
         
         // Translate the touch delta into the actual working width of the drawn alphabet.
-        let deltaValue = Double(alphabet.count) * deltaDistance / Double(workingWidth)
+        let deltaValue = (Double(alphabet.count) + 1) * deltaDistance / Double(workingWidth)
         
         previousLocation = location
         internalValue += deltaValue
