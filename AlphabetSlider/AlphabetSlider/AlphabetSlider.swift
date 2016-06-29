@@ -10,9 +10,25 @@ import Foundation
 
 public class AlphabetSlider: UIControl {
     
-    public var alphabet: [String] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".characters.map() { return String($0) } {
+    // MARK: public API and data model
+    public var alphabet: [String] = "ABCDEFGHiiimmmmQRSTUVWXYZ".characters.map() { return String($0) } {
         didSet { setNeedsDisplay() }
     }
+    
+    public var value: Int {
+        get {
+            return storedValue
+        }
+        set {
+            storedValue = newValue
+            internalValue = Double(newValue)
+            setNeedsDisplay()
+        }
+    }
+    
+    
+    
+    // MARK: public display properties.
     
     public var fontName = ""
     public var fontSize: CGFloat = -1.0 // Intentionally invalid starting value.
@@ -30,6 +46,9 @@ public class AlphabetSlider: UIControl {
         return UIFont(name: fontName, size: fontSize) ?? UIFont.preferredFontForTextStyle(UIFontTextStyleHeadline)
     } }
     
+    public var horizonalInset = CGFloat(10.0)
+    public var baselineOffset = CGFloat(10.0)
+    
     
     
     // MARK: private internal state.
@@ -39,23 +58,6 @@ public class AlphabetSlider: UIControl {
     private var internalValue: Double = 0.0
     
     private var storedValue: Int = 0
-    
-    public var value: Int {
-        get {
-            return storedValue
-        }
-        set {
-            storedValue = newValue
-            internalValue = Double(newValue)
-            setNeedsDisplay()
-        }
-    }
-    
-    
-    
-    // MARK: private view/layer relationships
-    
-    let indicator = LocationIndicator()
     
     
     
@@ -76,8 +78,6 @@ public class AlphabetSlider: UIControl {
         
         previousLocation = location
         
-        // @todo: move the thumb layer's frame by X amount.
-
         internalValue += deltaValue
         internalValue = min(max(internalValue, 0), Double(alphabet.count - 1))
         
@@ -92,31 +92,12 @@ public class AlphabetSlider: UIControl {
         return true
     }
     
-    public override func endTrackingWithTouch(touch: UITouch?, withEvent event: UIEvent?) {
-        // @todo: animate the thumb layer to the nearest letter.
-        
-//        UIView.animateWithDuration(0.4, delay: 0.0, usingSpringWithDamping: 7, initialSpringVelocity: 15, options: [], animations: { () -> Void in
-//            let roundValue = round(self.value)
-//            let thumbCenter = CGPoint(x: CGFloat(roundValue) * (self.bounds.width / CGFloat(self.maximumValue)), y: self.bounds.midY)
-//            self.thumbLayer.frame = CGRect(x: thumbCenter.x - self.thumbWidth / 2, y: self.tickHight + self.thumbMargin , width: self.thumbWidth, height: self.thumbWidth)
-//        }) { (Bool) -> Void in
-//            self.value = round(self.value)
-//            self.sendActionsForControlEvents(.ValueChanged)
-//        }
-    }
-    
     
     
     // MARK: Initialization
     
     private func initialize() {
-        // @todo: how do we know where to put the origin of the indicator?
-        // We can't know this until we know where the first letter is, which
-        // happends after this initialization.
-        let indicatorFrame = CGRect(origin: CGPoint(x: CGFloat(-20.0), y: CGFloat(0.0)), size: CGSize(width: 100, height: 100))
-        indicator.frame = indicatorFrame
-        layer.addSublayer(indicator)
-        indicator.highlighted = true
+        print(previousLocation)
     }
     
     public override init(frame: CGRect) {
@@ -135,10 +116,9 @@ public class AlphabetSlider: UIControl {
     
     public override func drawRect(rect: CGRect) {
         guard alphabet.count > 0 else { return }
-        let spacePerLetter = bounds.width / CGFloat(alphabet.count)
 
         let paragraph = NSMutableParagraphStyle()
-        paragraph.alignment = .Center
+//        paragraph.alignment = .Center
         
         // Paint over our previous drawing.
         backgroundColor?.setFill()
@@ -146,39 +126,48 @@ public class AlphabetSlider: UIControl {
         let attributes = [
             NSForegroundColorAttributeName: fontColor,
             NSFontAttributeName: font,
-            NSParagraphStyleAttributeName: paragraph
+            NSParagraphStyleAttributeName: paragraph,
+            NSBackgroundColorAttributeName: UIColor.orangeColor()
         ]
         let focusAttributes = [
             NSForegroundColorAttributeName: focusFontColor,
             NSFontAttributeName: focusFont,
-            NSParagraphStyleAttributeName: paragraph
+            NSParagraphStyleAttributeName: paragraph,
+            NSBackgroundColorAttributeName: UIColor.orangeColor()
         ]
         
         // Deduce the height of our letters for bottom alignment.
         let focusLetter = NSAttributedString(string: alphabet[value], attributes: focusAttributes)
         let focusLetterSize = focusLetter.size()
         let focusHeight = bounds.height - focusLetterSize.height
-        
-        
-        var letterHeight: CGFloat?
+        let yPosition = focusLetterSize.height - baselineOffset
         
         // Deduce the width of our letters for use with drawInRect
-        let letterWidth = NSAttributedString(string: "M", attributes: focusAttributes).size().width
+        let letterWidth = NSAttributedString(string: "M", attributes: attributes).size().width
+        
+        // Deduce the width of our final letter for centering.
+        let lastWidth = NSAttributedString(string: alphabet.last!, attributes: attributes).size().width
+        
+        // Deduce our actual spacing per letter to keep the alphabet centered.
+        let workingWidth = bounds.width - (horizonalInset * 2)
+        let idealSpacePerLetter = workingWidth / CGFloat(alphabet.count) // Ideal spacing for a monospace font.
+        let realWidth = (idealSpacePerLetter * (CGFloat(alphabet.count) - CGFloat(1.0))) + (lastWidth / 2) // Adjusted width, subsituting the last ideal width for the actual width.
+        let spacePerLetter = realWidth / (CGFloat(alphabet.count) - 1)
+        
+        // Deduce the inset needed to center the alphabet.
+        let alphabetInset = workingWidth - spacePerLetter * (CGFloat(alphabet.count) - 1)
+        
+        // @todo: cache our realWidth, so we can do a ratio with the dragging locations.
         
         
         for (index, letter) in alphabet.enumerate() {
-            let xPosition = spacePerLetter * CGFloat(index)
+            let xPosition = spacePerLetter * CGFloat(index) + horizonalInset + alphabetInset / 2
+            
             if index == storedValue {
-                focusLetter.drawInRect(CGRect(origin: CGPoint(x: xPosition, y: focusHeight), size: CGSize(width: letterWidth, height: focusHeight)))
+                focusLetter.drawInRect(CGRect(origin: CGPoint(x: xPosition, y: yPosition), size: CGSize(width: focusLetterSize.width, height: focusHeight)))
             } else {
                 let letterString = NSAttributedString(string: letter, attributes: attributes)
-                
-                // Figure out the letter height of the normal letters only once.
-                if letterHeight == nil {
-                    letterHeight = letterString.size().height
-                }
-                
-                letterString.drawInRect(CGRect(origin: CGPoint(x: xPosition, y: letterHeight!), size: CGSize(width: letterWidth, height: focusHeight)))
+                letterString.drawInRect(CGRect(origin: CGPoint(x: xPosition, y: yPosition), size: CGSize(width: letterWidth, height: focusHeight)))
             }
         }
     }

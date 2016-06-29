@@ -2,14 +2,15 @@ import UIKit
 import AlphabetSlider
 
 class ExampleController: UIViewController {
-    // Intentionally make labels
-    private let alphabet: [String] = "1234567ABCDEFGXYZ".characters.map() { return String($0) }
+    
+    private let alphabet: [String] = "MM".characters.map() { return String($0) }
     
     @IBOutlet weak var indexSlider: AlphabetSlider!
 
     @IBOutlet weak var collection: UICollectionView!
     
-    private var indexIsScrolling = false
+    // Prevent the index from updating during animation and initialization.
+    private var indexIsScrolling = true
     
     private var internalValue: Int = 0
         
