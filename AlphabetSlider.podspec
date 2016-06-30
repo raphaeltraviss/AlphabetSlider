@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "AlphabetSlider"
-  s.version      = "1.0.1"
+  s.version      = "1.0.2"
   s.summary      = "Provides an incremental slider for arbitary string values."
 
   # This description is used to generate tags and improve search results.
@@ -39,8 +39,8 @@ Provides an incremental slider, allowing the user to select from any arbitary va
   #  Popular ones are 'MIT', 'BSD' and 'Apache License, Version 2.0'.
   #
 
-  s.license      = "BSD"
-  # s.license      = { :type => "MIT", :file => "FILE_LICENSE" }
+  # s.license      = "BSD"
+  s.license      = { :type => "BSD", :file => "LICENSE.txt" }
 
 
   # ――― Author Metadata  ――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
@@ -80,7 +80,7 @@ Provides an incremental slider, allowing the user to select from any arbitary va
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  s.source       = { :git => "https://github.com/raphaeltraviss/AlphabetSlider.git", :tag => "1.0.1" }
+  s.source       = { :git => "https://github.com/raphaeltraviss/AlphabetSlider.git", :tag => "1.0.2" }
 
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
