@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "AlphabetSlider"
-  s.version      = "1.0.0"
+  s.version      = "1.0.1"
   s.summary      = "Provides an incremental slider for arbitary string values."
 
   # This description is used to generate tags and improve search results.
@@ -65,7 +65,7 @@ Provides an incremental slider, allowing the user to select from any arbitary va
   #
 
   # s.platform     = :ios
-  # s.platform     = :ios, "5.0"
+  s.platform     = :ios, "8.0"
 
   #  When using multiple platforms
   # s.ios.deployment_target = "5.0"
@@ -80,7 +80,7 @@ Provides an incremental slider, allowing the user to select from any arbitary va
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  s.source       = { :git => "https://github.com/raphaeltraviss/AlphabetSlider.git", :tag => "1.0.0" }
+  s.source       = { :git => "https://github.com/raphaeltraviss/AlphabetSlider.git", :tag => "1.0.1" }
 
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
@@ -91,8 +91,8 @@ Provides an incremental slider, allowing the user to select from any arbitary va
   #  Not including the public_header_files will make all headers public.
   #
 
-  s.source_files  = "AlphabetSlider/*"
-  s.exclude_files = "AlphabetSlider/xcworkspace", "AlphabetSliderExample/"
+  s.source_files  = "AlphabetSlider/AlphabetSlider"
+  # s.exclude_files = "AlphabetSliderExample"
 
   # s.public_header_files = "AlphabetSlider.h"
 
@@ -117,7 +117,7 @@ Provides an incremental slider, allowing the user to select from any arbitary va
   #  the lib prefix of their name.
   #
 
-  # s.framework  = "SomeFramework"
+  s.framework  = "UIKit"
   # s.frameworks = "SomeFramework", "AnotherFramework"
 
   # s.library   = "iconv"

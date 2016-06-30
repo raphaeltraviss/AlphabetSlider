@@ -157,7 +157,7 @@ public class AlphabetSlider: UIControl {
         // Calculate spacing that will automatically center the alphabet.
         let spacePerLetter = workingWidth / CGFloat(alphabet.count + 1)
         
-        for (index, letter) in alphabet.enumerate() {
+        for (index, _) in alphabet.enumerate() {
             let theAttributes = index == storedValue ? focusAttributes : attributes
             let letterString = NSAttributedString(string: alphabet[index], attributes: theAttributes)
             
