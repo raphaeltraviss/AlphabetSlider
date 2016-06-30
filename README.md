@@ -1,5 +1,7 @@
 # Alphabet Slider
 
+Provides an incremental slider, allowing the user to select from any arbitary values of your choosing--alphabet letters, numbers, values, or anything else.  Hook this up to a UICollectionView or a UITableView and use it as an index to quickly scroll between sections.  As a user scrolls through a table or collection, you can use delegate methods to update the value of this slider, which is a nice way of displaying the user's overall progress through the table or collection.
+
 ![alt tag](demo.gif)
 
 ## Why would you want to use this?

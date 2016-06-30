@@ -29,13 +29,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		649061E51D2317F0002D3285 /* Style */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Style;
-			sourceTree = "<group>";
-		};
 		64B2BC4B1D1D7E2E00729647 = {
 			isa = PBXGroup;
 			children = (
@@ -58,7 +51,6 @@
 				64B2BC9D1D1D7F0600729647 /* AlphabetSlider.swift */,
 				64B2BC581D1D7E2E00729647 /* AlphabetSlider.h */,
 				64B2BC5A1D1D7E2E00729647 /* Info.plist */,
-				649061E51D2317F0002D3285 /* Style */,
 			);
 			path = AlphabetSlider;
 			sourceTree = "<group>";
