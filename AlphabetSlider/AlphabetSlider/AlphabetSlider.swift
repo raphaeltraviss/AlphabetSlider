@@ -31,13 +31,14 @@ public class AlphabetSlider: UIControl {
     
     // MARK: public display properties.
     
+    // Interface Builder does not support setting UIFont directly; supply both a valid font name, and a size.
     @IBInspectable public var fontName: String = ""
     @IBInspectable public var fontSize: CGFloat = -1.0 // Intentionally invalid values as default.
-    @IBInspectable public var fontColor = UIColor.darkGrayColor()
+    @IBInspectable public var fontColor: UIColor = UIColor.darkGrayColor()
     
     @IBInspectable public var focusFontName: String = ""
     @IBInspectable public var focusFontSize: CGFloat = -1.0
-    @IBInspectable public var focusFontColor = UIColor.lightGrayColor()
+    @IBInspectable public var focusFontColor: UIColor = UIColor.lightGrayColor()
     
     private var font: UIFont { get {
         return UIFont(name: fontName, size: fontSize) ?? UIFont.preferredFontForTextStyle(UIFontTextStyleSubheadline)
