@@ -14,14 +14,14 @@
 import Foundation
 
 @IBDesignable
-public class AlphabetSlider: UIControl {
+open class AlphabetSlider: UIControl {
     
     // MARK: public API and data model
-    public var alphabet: [String] = "12345ABCDEFG!@#$%^&*()_.XYZ".characters.map() { return String($0) } {
+    open var alphabet: [String] = "12345ABCDEFG!@#$%^&*()_.XYZ".characters.map() { return String($0) } {
         didSet { setNeedsDisplay() }
     }
     
-    public var value: Int {
+    open var value: Int {
         get {
             return storedValue
         }
@@ -37,48 +37,48 @@ public class AlphabetSlider: UIControl {
     // MARK: public display properties.
     
     // Interface Builder does not support setting UIFont directly; supply both a valid font name, and a size.
-    @IBInspectable public var fontName: String = ""
-    @IBInspectable public var fontSize: CGFloat = -1.0 // Intentionally invalid values as default.
-    @IBInspectable public var fontColor: UIColor = UIColor.darkGrayColor()
+    @IBInspectable open var fontName: String = ""
+    @IBInspectable open var fontSize: CGFloat = -1.0 // Intentionally invalid values as default.
+    @IBInspectable open var fontColor: UIColor = UIColor.darkGray
     
-    @IBInspectable public var focusFontName: String = ""
-    @IBInspectable public var focusFontSize: CGFloat = -1.0
-    @IBInspectable public var focusFontColor: UIColor = UIColor.lightGrayColor()
+    @IBInspectable open var focusFontName: String = ""
+    @IBInspectable open var focusFontSize: CGFloat = -1.0
+    @IBInspectable open var focusFontColor: UIColor = UIColor.lightGray
     
-    private var font: UIFont { get {
-        return UIFont(name: fontName, size: fontSize) ?? UIFont.preferredFontForTextStyle(UIFontTextStyleSubheadline)
+    fileprivate var font: UIFont { get {
+        return UIFont(name: fontName, size: fontSize) ?? UIFont.preferredFont(forTextStyle: UIFontTextStyle.subheadline)
     } }
     
-    private var focusFont: UIFont { get {
-        return UIFont(name: focusFontName, size: focusFontSize) ?? UIFont.preferredFontForTextStyle(UIFontTextStyleHeadline)
+    fileprivate var focusFont: UIFont { get {
+        return UIFont(name: focusFontName, size: focusFontSize) ?? UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)
     } }
     
-    @IBInspectable public var horizonalInset: CGFloat = 0.0
-    @IBInspectable public var baselineOffset: CGFloat = 0.0
+    @IBInspectable open var horizonalInset: CGFloat = 0.0
+    @IBInspectable open var baselineOffset: CGFloat = 0.0
     
     
     
     // MARK: private internal state.
     
-    private var previousLocation = CGPoint()
+    fileprivate var previousLocation = CGPoint()
     
     // Keep track of the precise value, from 0 to alphabet.count.
-    private var internalValue: Double = 0.0 {
+    fileprivate var internalValue: Double = 0.0 {
         didSet {
             internalValue = min(max(internalValue, 0), Double(alphabet.count - 1))
             let newValue = Int(internalValue)
             
             if newValue != storedValue {
                 storedValue = newValue
-                self.sendActionsForControlEvents(.ValueChanged)
+                self.sendActions(for: .valueChanged)
                 setNeedsDisplay()
             }
         }
     }
     
-    private var storedValue: Int = 0
+    fileprivate var storedValue: Int = 0
     
-    private var workingWidth: CGFloat {
+    fileprivate var workingWidth: CGFloat {
         return bounds.width - (horizonalInset * 2)
     }
     
@@ -86,8 +86,8 @@ public class AlphabetSlider: UIControl {
     
     // MARK: UIControl overrides
     
-    public override func beginTrackingWithTouch(touch: UITouch, withEvent event: UIEvent?) -> Bool {
-        previousLocation = touch.locationInView(self)
+    open override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+        previousLocation = touch.location(in: self)
         let xPos = previousLocation.x
         
         // Convert the touched point to the drawn letter index.
@@ -98,8 +98,8 @@ public class AlphabetSlider: UIControl {
         return true
     }
     
-    public override func continueTrackingWithTouch(touch: UITouch, withEvent event: UIEvent?) -> Bool {
-        let location = touch.locationInView(self)
+    open override func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+        let location = touch.location(in: self)
         let xPos = location.x
         
         // If the touch was out-of-bounds, end tracking.
@@ -121,7 +121,7 @@ public class AlphabetSlider: UIControl {
     
     // MARK: Initialization
     
-    private func initialize() {
+    fileprivate func initialize() {
         print(previousLocation)
     }
     
@@ -139,7 +139,7 @@ public class AlphabetSlider: UIControl {
     
     // MARK: drawing code
     
-    public override func drawRect(rect: CGRect) {
+    open override func draw(_ rect: CGRect) {
         guard alphabet.count > 0 else { return }
 
         // Paint over our previous drawing.
@@ -148,16 +148,16 @@ public class AlphabetSlider: UIControl {
         let attributes = [
             NSForegroundColorAttributeName: fontColor,
             NSFontAttributeName: font
-        ]
+        ] as [String : Any]
         let focusAttributes = [
             NSForegroundColorAttributeName: focusFontColor,
             NSFontAttributeName: focusFont
-        ]
+        ] as [String : Any]
 
         // Calculate spacing that will automatically center the alphabet.
         let spacePerLetter = workingWidth / CGFloat(alphabet.count + 1)
         
-        for (index, _) in alphabet.enumerate() {
+        for (index, _) in alphabet.enumerated() {
             let theAttributes = index == storedValue ? focusAttributes : attributes
             let letterString = NSAttributedString(string: alphabet[index], attributes: theAttributes)
             
@@ -165,7 +165,7 @@ public class AlphabetSlider: UIControl {
             let letterCenterDistance = letterSize.width / 2
             let yPosition = bounds.height / 2 - baselineOffset - letterSize.height / 2
             let xPosition = spacePerLetter * (CGFloat(index) + 1) + horizonalInset - letterCenterDistance
-            letterString.drawInRect(CGRect(origin: CGPoint(x: xPosition, y: yPosition), size: CGSize(width: letterSize.width, height: letterSize.height)))
+            letterString.draw(in: CGRect(origin: CGPoint(x: xPosition, y: yPosition), size: CGSize(width: letterSize.width, height: letterSize.height)))
         }
     }
 }

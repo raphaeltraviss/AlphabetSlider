@@ -16,49 +16,49 @@ import AlphabetSlider
 
 class ExampleController: UIViewController {
     
-    private let alphabet: [String] = "123456ABCDEFG-?%)(_#$%^@".characters.map() { return String($0) }
+    fileprivate let alphabet: [String] = "123456ABCDEFG-?%)(_#$%^@".characters.map() { return String($0) }
     
     @IBOutlet weak var indexSlider: AlphabetSlider!
 
     @IBOutlet weak var collection: UICollectionView!
     
     // Prevent the index from updating during animation and initialization.
-    private var indexIsScrolling = true
+    fileprivate var indexIsScrolling = true
     
-    private var internalValue: Int = 0
+    fileprivate var internalValue: Int = 0
         
-    func scrollToIndex(sender: AlphabetSlider) {
+    func scrollToIndex(_ sender: AlphabetSlider) {
         indexIsScrolling = true
-        let indexPath = NSIndexPath(forItem: 0, inSection: sender.value)
-        collection.scrollToItemAtIndexPath(indexPath, atScrollPosition: .CenteredVertically, animated: true)
+        let indexPath = IndexPath(item: 0, section: sender.value)
+        collection.scrollToItem(at: indexPath, at: .centeredVertically, animated: true)
     }
     
     override func viewDidLoad() {
         indexSlider.alphabet = alphabet
         collection.delegate = self
         collection.dataSource = self
-        indexSlider.addTarget(self, action: #selector(scrollToIndex), forControlEvents: .ValueChanged)
+        indexSlider.addTarget(self, action: #selector(scrollToIndex), for: .valueChanged)
     }
 }
 
 
 
 extension ExampleController: UICollectionViewDataSource {
-    func numberOfSectionsInCollectionView(collectionView: UICollectionView) -> Int {
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
         return alphabet.count
     }
     
-    func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return 10
     }
     
-    func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
-        let cell = collection.dequeueReusableCellWithReuseIdentifier("orangeCell", forIndexPath: indexPath)
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collection.dequeueReusableCell(withReuseIdentifier: "orangeCell", for: indexPath)
         return cell
     }
     
-    func collectionView(collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, atIndexPath indexPath: NSIndexPath) -> UICollectionReusableView {
-        let view = collection.dequeueReusableSupplementaryViewOfKind(UICollectionElementKindSectionHeader, withReuseIdentifier: "sectionHeader", forIndexPath: indexPath)
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        let view = collection.dequeueReusableSupplementaryView(ofKind: UICollectionElementKindSectionHeader, withReuseIdentifier: "sectionHeader", for: indexPath)
         if let view = view as? AlphabetHeader {
             view.sectionLabel.text = alphabet[indexPath.section]
         }
@@ -68,12 +68,12 @@ extension ExampleController: UICollectionViewDataSource {
 
 extension ExampleController: UICollectionViewDelegate {
     // Disable the index scroll lock when the user scrolls the collection themselves.
-    func scrollViewWillBeginDragging(scrollView: UIScrollView) {
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         indexIsScrolling = false
     }
     
     // When a user is scrolling the collection, update the index view's value.
-    func collectionView(collectionView: UICollectionView, willDisplayCell cell: UICollectionViewCell, forItemAtIndexPath indexPath: NSIndexPath) {
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         internalValue = indexPath.section
         guard !indexIsScrolling else { return }
         indexSlider.value = internalValue
