@@ -9,6 +9,7 @@ Provides an incremental slider, allowing the user to select from any arbitary va
 * You want to have an incremental slider loaded with your own arbitrary labels
 * You need an index for a UICollectionView
 * You need an index for a UITableView, beyond the normal index that UITableView provides
+* You need an index for some sort of UIScrollView
 
 
 
@@ -59,7 +60,40 @@ Essentially, you want two things to happen with an index view:
 1. When the index view is touched or scrolled, scroll the collection view.
 2. When the collection view is scrolled, update the index view.
 
-This is accomplished by using `collectionView(willDisplayCell:)` and `your_slider.addTarget(forControlEvents:)`.  To prevent these two scroll activities from interfering with each other, you will need to add state to your view controller.
+This is accomplished by using `collectionView(willDisplayCell:)` and `your_slider.addTarget(forControlEvents:)`.
+
+In a perfect world, that should be enough, but unfortunately the scroll view and its index have to share state in order to function in unison.  This is explained in the next section.
+
+### Avoiding event collisions
+
+There's a very good reason why there are not many UIScrollView index views on GitHub: the index and the scroll view need to work together and share state, since they are controlling the same scrollable area.
+
+The solution is two properties on the index view: `userIsUsing` and `scrollViewIsUsing`.   Together, these properties act as a focus property, that tells the index view if the user has last touched the scroll view, or the index view, and it will stop sending events when it's not focused.
+
+The other end of this, is that the scroll view needs to stop sending events to the index view, while the user is using the index view.
+
+Here are important methods from the example:
+
+```
+// When a user is scrolling the collection, update the index view's value.
+	func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+		// This will update the index slider's value, but it won't send out the ValueChanged
+		// event if scrollViewIsUsing is true.
+		guard !indexSlider.userIsUsing else { return }
+		indexSlider.value = indexPath.section
+	}
+	
+	func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+		indexSlider.userIsUsing = false
+		indexSlider.scrollViewIsUsing = true
+	}
+	
+	func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+		indexSlider.scrollViewIsUsing = false
+	}
+	
+```
+
 
 
 
