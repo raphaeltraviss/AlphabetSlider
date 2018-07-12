@@ -31,7 +31,7 @@ class ExampleController: UIViewController {
 	}
 	
 	override func viewDidLoad() {
-		indexSlider.alphabet = alphabet
+		indexSlider.alphabet = ["one", "two", "threethree", "four", "five", "💩💩💩💩💩"]
 		collection.delegate = self
 		collection.dataSource = self
 		indexSlider.addTarget(self, action: #selector(scrollToIndex), for: .valueChanged)

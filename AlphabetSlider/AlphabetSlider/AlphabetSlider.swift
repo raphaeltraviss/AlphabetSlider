@@ -17,8 +17,20 @@ import Foundation
 open class AlphabetSlider: UIControl {
 	
 	// MARK: public API and data model
+  
+  // cached_letters shadows alphabet.
   open var alphabet: [String] = "12345ABCDEFG!@#$%^&*()_.XYZ".map({ String($0) }) {
-		didSet { setNeedsDisplay() }
+		didSet {
+      let normal_attr = [
+        NSForegroundColorAttributeName: fontColor,
+        NSFontAttributeName: font
+      ] as [String : Any]
+      
+      cache_0_renderables = alphabet.map({ NSMutableAttributedString(string: $0, attributes: normal_attr) })
+      cache_1_renderable_widths = cache_0_renderables.map({ $0.size().width })
+      
+      setNeedsDisplay()
+    }
 	}
 	
 	// We keep track of our value in three different places:
@@ -47,6 +59,8 @@ open class AlphabetSlider: UIControl {
 	
 	@IBInspectable open var slideIndicatorThickness: CGFloat = 5.0 {
 		didSet {
+      // Initialize the slide indicator: we estimate its position and width, since alphabet hasn't
+      // been set yet.
 			if slideIndicator != nil { slideIndicator.removeFromSuperlayer() }
 			let slideLayer = CALayer()
 			let theOrigin = CGPoint(x: bounds.origin.x + horizonalInset + (workingWidthPerLetter / 2), y: bounds.origin.y + bounds.height - slideIndicatorThickness)
@@ -82,6 +96,8 @@ open class AlphabetSlider: UIControl {
 	
 	
 	// MARK: private internal state.
+  
+  fileprivate var cache_0_renderables = [NSMutableAttributedString]()
 	
 	// Dear Scroll View, if a user is using me, please don't update
 	// my value when your cells appear on-screen.  You may read this 
@@ -105,22 +121,49 @@ open class AlphabetSlider: UIControl {
 	// A float value that represents the integer index of the currently-focused letter.
   // @TODO: this could be a CGFloat, to make math easier.
 	fileprivate var internalValue: Double = 0.0 { didSet {
-    // NOTE: internalValue does NOT range between 0.0 and 1.0: it ranges between 0.0 and
-    // Double(alphabet.count).  This is so that when you slide, it can convert the value
-    // to an Int, check it in a list of cached letter widths, and space the letters out
-    // correctly.
     let max_value = max(0.0, Double(alphabet.count - 1))
-    // NOTE: once our math is more correct, we won't need this lower bounds check, because
-    // our set value on continueTracking should never fall below zero: there is some
-    // problem between UIKit's coord space and our own working coord space.
     let sanitizedValue = max(0.0, min(internalValue, max_value))
-    
     internalValue = sanitizedValue
     
     // Trigger an event only if we cross an integer boundary.
-    guard Int(internalValue) != Int(oldValue) else { return }
+    let new_int = Int(internalValue)
+    let old_int = Int(oldValue)
+    guard new_int != old_int else { return }
     
-    updateIndicator()
+    
+    // Adjust the caches to consider the new integer boundary event.
+    
+    let normal_attr = [
+      NSForegroundColorAttributeName: fontColor,
+      NSFontAttributeName: font
+    ] as [String : Any]
+    let focus_attr = [
+      NSForegroundColorAttributeName: focusFontColor,
+      NSFontAttributeName: focusFont
+    ] as [String : Any]
+
+    let just_left_letter = cache_0_renderables[old_int]
+    let just_entered_letter = cache_0_renderables[new_int]
+    
+    // Make the newly-entered string highlighted, and the just-exited letter normal.
+    just_left_letter.setAttributes(normal_attr, range: NSMakeRange(0, just_left_letter.length))
+    just_entered_letter.setAttributes(normal_attr, range: NSMakeRange(0, just_entered_letter.length))
+    
+    // Adjust the new widths in the cache
+    cache_1_renderable_widths[old_int] = just_left_letter.size().width
+    cache_1_renderable_widths[new_int] = just_entered_letter.size().width
+    
+    // Move the indicator the new position, and adjust its width
+    // Add up the widths BEFORE the new selection, and place the indicator's frame's origin there.
+    let before_letters_width: CGFloat = cache_1_renderable_widths.enumerated().reduce(0.0, { acc_result, elem_pair in
+      let (index, width) = elem_pair
+      guard index < new_int else { return acc_result }
+      return acc_result + width
+    })
+    let new_origin = CGPoint(x: bounds.origin.x + horizonalInset + before_letters_width, y: bounds.origin.y + bounds.height - slideIndicatorThickness)
+    let new_size = CGSize(width: cache_1_renderable_widths[new_int], height: slideIndicatorThickness)
+    slideIndicator.frame = CGRect(origin: new_origin, size: new_size)
+
     
     // Re-render the text with the new selected index.
     setNeedsDisplay()
@@ -138,7 +181,7 @@ open class AlphabetSlider: UIControl {
 	// After we draw the letters, we know how wide each one is.  Store
 	// those values here, so we can use them to properly position the
 	// selection indicator.
-	fileprivate var cachedLetterWidths = [CGFloat]()
+	fileprivate var cache_1_renderable_widths = [CGFloat]()
 	
 	fileprivate var slideIndicator: CALayer!
 	
@@ -149,15 +192,6 @@ open class AlphabetSlider: UIControl {
 	// Calculate spacing per letter that will automatically center the text.
 	fileprivate var workingWidthPerLetter: CGFloat {
 		return workingWidth / CGFloat(alphabet.count + 1)
-	}
-	
-	fileprivate func updateIndicator() {
-    // This is a serious architectural flaw of AlphabetSlider: all of the characters have to be
-    // the same width.  When we say a "letter", we really mean a "label", since the labels
-    // could all be strings of varying length.  We need to stop using workingWidthPerLetter,
-    // and instead using cachedLetterWidths, every time.
-    let fudge_factor: CGFloat = 1.0
-		slideIndicator.frame.origin.x = horizonalInset + (workingWidthPerLetter / 2) + (workingWidthPerLetter * CGFloat(Int(internalValue)) + fudge_factor)
 	}
 	
 	
@@ -239,42 +273,19 @@ open class AlphabetSlider: UIControl {
 	// MARK: drawing code
 	
 	open override func draw(_ rect: CGRect) {
-		guard alphabet.count > 0 else { return }
-		
 		// Paint over our previous drawing.
 		backgroundColor?.setFill()
-		
-		let attributes = [
-			NSForegroundColorAttributeName: fontColor,
-			NSFontAttributeName: font
-			] as [String : Any]
-		let focusAttributes = [
-			NSForegroundColorAttributeName: focusFontColor,
-			NSFontAttributeName: focusFont
-			] as [String : Any]
-		
-    // @TODO: the letter/label widths aren't actually cached, if we remove/rebuild
-    // them every single time.  Should be an optional value, since it only gets
-    // filled after we've rendered once.
-    // Therefore, we have two application states: init and before_render.
-    // The cache only needs to be cleared when we set the alphabet.  If fact, I
-    // wonder if we can "render" them off-screen, get the width, and fill the cache
-    // immediately?  Then we could be sure the cache would always be there, it could
-    // be non-optional, and there would be no need for multiple application states.
-		cachedLetterWidths.removeAll()
-		
-		for (index, _) in alphabet.enumerated() {
-			let theAttributes = index == Int(internalValue) ? focusAttributes : attributes
-			let letterString = NSAttributedString(string: alphabet[index], attributes: theAttributes)
-			
-			let letterSize = letterString.size()
-			
-			cachedLetterWidths.append(letterSize.width)
-			
-			let letterCenterDistance = letterSize.width / 2
-			let yPosition = bounds.height / 2 - baselineOffset - letterSize.height / 2
-			let xPosition = workingWidthPerLetter * (CGFloat(index) + 1) + horizonalInset - letterCenterDistance
-			letterString.draw(in: CGRect(origin: CGPoint(x: xPosition, y: yPosition), size: CGSize(width: letterSize.width, height: letterSize.height)))
+  
+    let bogus_height: CGFloat = self.font.lineHeight
+    let letter_width_pairs = zip(cache_0_renderables, cache_1_renderable_widths)
+    
+    var x_offset: CGFloat = 0.0
+		for pair in letter_width_pairs {
+      let (letter, width) = pair
+			let yPosition = bounds.height / 2 - baselineOffset - bogus_height / 2
+			let xPosition = x_offset + horizonalInset
+			letter.draw(in: CGRect(origin: CGPoint(x: xPosition, y: yPosition), size: CGSize(width: width, height: bogus_height)))
+      x_offset += width
 		}
 	}
 }
