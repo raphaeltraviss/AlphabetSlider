@@ -21,6 +21,7 @@ open class AlphabetSlider: UIControl {
   // cached_letters shadows alphabet.
   open var alphabet: [String] = "12345ABCDEFG!@#$%^&*()_.XYZ".map({ String($0) }) {
 		didSet {
+      style_indicator()
       rebuild_caches()
       setNeedsDisplay()
     }
@@ -73,18 +74,13 @@ open class AlphabetSlider: UIControl {
 	@IBInspectable open var focusFontColor: UIColor = UIColor.lightGray
   
   @IBInspectable open var letter_spacing: CGFloat = 5.0
-  @IBInspectable open var indicatorColor: UIColor = .orange
+  @IBInspectable open var indicatorColor: UIColor = .orange { didSet {
+    style_indicator()
+  }}
 	
-	@IBInspectable open var slideIndicatorThickness: CGFloat = 5.0 {
-		didSet {
-			if slideIndicator != nil { slideIndicator.removeFromSuperlayer() }
-			let slideLayer = CALayer()
-      slideLayer.frame = CGRect(origin: CGPoint(), size: CGSize(width: 10.0, height: slideIndicatorThickness))
-			slideLayer.backgroundColor = indicatorColor.cgColor
-			slideIndicator = slideLayer
-			layer.addSublayer(slideIndicator)
-		}
-	}
+  @IBInspectable open var slideIndicatorThickness: CGFloat = 5.0 { didSet {
+    style_indicator()
+  }}
 	
 	@IBInspectable open var horizontalInset: CGFloat = 0.0
 	@IBInspectable open var baselineOffset: CGFloat = 0.0
@@ -141,7 +137,7 @@ open class AlphabetSlider: UIControl {
   
   fileprivate var cache_2_horiz_center_offset: CGFloat = 0.0
   
-  fileprivate var slideIndicator: CALayer!
+  fileprivate var slideIndicator = CALayer()
   
   // The total width consumed by the rendered letters within view.bounds.
   fileprivate var content_width: CGFloat {
@@ -207,6 +203,12 @@ open class AlphabetSlider: UIControl {
     cache_1_renderable_widths[new_index] = just_entered_letter.size().width
   }
   
+  fileprivate func style_indicator() {
+    slideIndicator.backgroundColor = indicatorColor.cgColor
+    let existing_frame = slideIndicator.frame
+    slideIndicator.frame = CGRect(origin: existing_frame.origin, size: CGSize(width: existing_frame.width, height: slideIndicatorThickness))
+  }
+  
   fileprivate func move_indicator(_ index: Int) {
     let start_point = cache_2_letter_start_points[index]
     let new_size = CGSize(width: cache_1_renderable_widths[index], height: slideIndicatorThickness)
@@ -225,6 +227,18 @@ open class AlphabetSlider: UIControl {
     return the_index + 1
     })
     value = found_index
+  }
+  
+  
+  
+  // MARK: initilialization
+  override public init(frame: CGRect) {
+    super.init(frame: frame)
+    layer.addSublayer(slideIndicator)
+  }
+  public required init?(coder aDecoder: NSCoder) {
+    super.init(coder: aDecoder)
+    layer.addSublayer(slideIndicator)
   }
   
 
@@ -247,19 +261,7 @@ open class AlphabetSlider: UIControl {
 		return true
 	}
 	
-	
-	
-	// MARK: Initialization
-	
-	public override init(frame: CGRect) {
-		super.init(frame: frame)
-	}
-	
-	required public init?(coder aDecoder: NSCoder) {
-		super.init(coder: aDecoder)
-	}
-	
-	
+  
 	
 	// MARK: drawing code
 	
