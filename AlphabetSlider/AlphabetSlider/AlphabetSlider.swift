@@ -21,28 +21,43 @@ open class AlphabetSlider: UIControl {
   // cached_letters shadows alphabet.
   open var alphabet: [String] = "12345ABCDEFG!@#$%^&*()_.XYZ".map({ String($0) }) {
 		didSet {
-      let normal_attr = [
-        NSForegroundColorAttributeName: fontColor,
-        NSFontAttributeName: font
-      ] as [String : Any]
-      
-      cache_0_renderables = alphabet.map({ NSMutableAttributedString(string: $0, attributes: normal_attr) })
-      cache_1_renderable_widths = cache_0_renderables.map({ $0.size().width })
-      
+      rebuild_caches()
       setNeedsDisplay()
     }
 	}
 	
 	// We keep track of our value in three different places:
 	// First of all, we have a public value to satisfy the UIControl API.
-	open var value: Int {
-		get {
-			return Int(internalValue)
-		}
-		set {
-			internalValue = Double(newValue)
-		}
-	}
+  open var value: Int = 0 { didSet {
+    // Trigger an event only if we cross an integer boundary.
+    guard alphabet.count > 0 else { return }
+    guard value != oldValue else { return }
+    
+    
+    // Bounds-check the value we've been set to.  Out-of-bounds values could be
+    // passed in from a ScrollView that has more sections than we have letters, or from
+    // a touch event, between the UIView's bounds and the content area.
+    value = min(max(value, 0), alphabet.count - 1)
+    
+    // @TODO: Adjust the caches to consider the new integer boundary event,
+    // marking strings as focused and recalculating widths.
+    adjust_caches(old_index: oldValue, new_index: value)
+    
+    // Move the indicator the new position, and adjust its width
+    move_indicator(value)
+    
+    // Re-render the text with the new selected index.
+    setNeedsDisplay()
+    
+    // Skip the update event if an external object has set our value;
+    // we wouldn't want to cause a loop (sending them a valueChanged notification,
+    // which in turn causes them to update their collectionview, which in
+    // turn updates our value, which in turn sends a valueChanged notification....
+    guard userIsUsing && !scrollViewIsUsing else { return }
+    
+    // Send the event notification.
+    self.sendActions(for: .valueChanged)
+  } }
 
 	
 	
@@ -56,23 +71,22 @@ open class AlphabetSlider: UIControl {
 	@IBInspectable open var focusFontName: String = ""
 	@IBInspectable open var focusFontSize: CGFloat = -1.0
 	@IBInspectable open var focusFontColor: UIColor = UIColor.lightGray
+  
+  @IBInspectable open var letter_spacing: CGFloat = 5.0
+  @IBInspectable open var indicatorColor: UIColor = .orange
 	
 	@IBInspectable open var slideIndicatorThickness: CGFloat = 5.0 {
 		didSet {
-      // Initialize the slide indicator: we estimate its position and width, since alphabet hasn't
-      // been set yet.
 			if slideIndicator != nil { slideIndicator.removeFromSuperlayer() }
 			let slideLayer = CALayer()
-			let theOrigin = CGPoint(x: bounds.origin.x + horizonalInset + (workingWidthPerLetter / 2), y: bounds.origin.y + bounds.height - slideIndicatorThickness)
-			let theSize = CGSize(width: workingWidth / CGFloat(alphabet.count), height: slideIndicatorThickness)
-			slideLayer.frame = CGRect(origin: theOrigin, size: theSize)
-			slideLayer.backgroundColor = UIColor.orange.cgColor
+      slideLayer.frame = CGRect(origin: CGPoint(), size: CGSize(width: 10.0, height: slideIndicatorThickness))
+			slideLayer.backgroundColor = indicatorColor.cgColor
 			slideIndicator = slideLayer
 			layer.addSublayer(slideIndicator)
 		}
 	}
 	
-	@IBInspectable open var horizonalInset: CGFloat = 0.0
+	@IBInspectable open var horizontalInset: CGFloat = 0.0
 	@IBInspectable open var baselineOffset: CGFloat = 0.0
 	
 	fileprivate var font: UIFont { get {
@@ -96,8 +110,7 @@ open class AlphabetSlider: UIControl {
 	
 	
 	// MARK: private internal state.
-  
-  fileprivate var cache_0_renderables = [NSMutableAttributedString]()
+
 	
 	// Dear Scroll View, if a user is using me, please don't update
 	// my value when your cells appear on-screen.  You may read this 
@@ -112,147 +125,125 @@ open class AlphabetSlider: UIControl {
 	// when you are the one that is generating those events.  I will read
 	// the value you set here, but I will not write to it.
 	open var scrollViewIsUsing = false
-	
-	// Keep track of the last-touch UIView bounds coordinate, for UIKit
-  // continueTracking method.
-	fileprivate var previousLocation = CGPoint()
-	
   
-	// A float value that represents the integer index of the currently-focused letter.
-  // @TODO: this could be a CGFloat, to make math easier.
-	fileprivate var internalValue: Double = 0.0 { didSet {
-    let max_value = max(0.0, Double(alphabet.count - 1))
-    let sanitizedValue = max(0.0, min(internalValue, max_value))
-    internalValue = sanitizedValue
-    
-    // Trigger an event only if we cross an integer boundary.
-    let new_int = Int(internalValue)
-    let old_int = Int(oldValue)
-    guard new_int != old_int else { return }
-    
-    
-    // Adjust the caches to consider the new integer boundary event.
-    
+  fileprivate var cache_0_renderables = [NSMutableAttributedString]()
+  
+  // After we draw the letters, we know how wide each one is.  Store
+  // those values here, so we can use them to properly position the
+  // selection indicator.
+  fileprivate var cache_1_renderable_widths = [CGFloat]()
+  
+  fileprivate var cache_1_focus_widths = [CGFloat]()
+  
+  // The start points for every letter.  Combined with cache_1_renderable widths to
+  // find the boundary of every letter, within content_width X coord space.
+  fileprivate var cache_2_letter_start_points = [CGFloat]()
+  
+  fileprivate var cache_2_horiz_center_offset: CGFloat = 0.0
+  
+  fileprivate var slideIndicator: CALayer!
+  
+  // The total width consumed by the rendered letters within view.bounds.
+  fileprivate var content_width: CGFloat {
+    return cache_1_renderable_widths.reduce(0.0, { acc_result, width in
+      return acc_result + width + letter_spacing
+    }) - letter_spacing
+  }
+  
+  
+  // MARK: private helper functions.
+  
+  fileprivate func rebuild_caches() {
     let normal_attr = [
       NSForegroundColorAttributeName: fontColor,
       NSFontAttributeName: font
+      ] as [String : Any]
+
+    cache_0_renderables = alphabet.map({ NSMutableAttributedString(string: $0, attributes: normal_attr) })
+    cache_1_renderable_widths = cache_0_renderables.map({ $0.size().width })
+
+    // Next, calculate how much free space, if any, is left within the view's bounds, and
+    // center the working area inside this extra space.
+
+    let free_space = bounds.width - content_width - (horizontalInset * 2)
+    cache_2_horiz_center_offset = max(0, free_space) / 2
+
+    // Finally, pre-compute the CGPoint boundaries, within working_width, of each letter.
+    cache_2_letter_start_points = cache_1_renderable_widths.enumerated().reduce(
+      [CGFloat](),
+      { start_points, index_width in
+        let (index, _) = index_width
+        let start_point: CGFloat = index == 0 ?
+          // The first letter always starts at the 0.0 point of the content space.
+          0.0
+          // Otherwise, this letter's start point is equal to the last letter's start
+          // point, plus its width, plus the letter spacing.
+          : start_points.last! + letter_spacing + cache_1_renderable_widths[index - 1]
+        return start_points + [start_point]
+      })
+    ;
+  }
+  
+  fileprivate func adjust_caches(old_index: Int, new_index: Int) {
+    return
+    let normal_attr = [
+    NSForegroundColorAttributeName: fontColor,
+    NSFontAttributeName: font
     ] as [String : Any]
     let focus_attr = [
-      NSForegroundColorAttributeName: focusFontColor,
-      NSFontAttributeName: focusFont
+    NSForegroundColorAttributeName: focusFontColor,
+    NSFontAttributeName: focusFont
     ] as [String : Any]
-
-    let just_left_letter = cache_0_renderables[old_int]
-    let just_entered_letter = cache_0_renderables[new_int]
+    
+    let just_left_letter = cache_0_renderables[old_index]
+    let just_entered_letter = cache_0_renderables[new_index]
     
     // Make the newly-entered string highlighted, and the just-exited letter normal.
     just_left_letter.setAttributes(normal_attr, range: NSMakeRange(0, just_left_letter.length))
-    just_entered_letter.setAttributes(normal_attr, range: NSMakeRange(0, just_entered_letter.length))
+    // just_entered_letter.setAttributes(focus_attr, range: NSMakeRange(0, just_entered_letter.length))
     
     // Adjust the new widths in the cache
-    cache_1_renderable_widths[old_int] = just_left_letter.size().width
-    cache_1_renderable_widths[new_int] = just_entered_letter.size().width
-    
-    // Move the indicator the new position, and adjust its width
-    // Add up the widths BEFORE the new selection, and place the indicator's frame's origin there.
-    let before_letters_width: CGFloat = cache_1_renderable_widths.enumerated().reduce(0.0, { acc_result, elem_pair in
-      let (index, width) = elem_pair
-      guard index < new_int else { return acc_result }
-      return acc_result + width
-    })
-    let new_origin = CGPoint(x: bounds.origin.x + horizonalInset + before_letters_width, y: bounds.origin.y + bounds.height - slideIndicatorThickness)
-    let new_size = CGSize(width: cache_1_renderable_widths[new_int], height: slideIndicatorThickness)
+    cache_1_renderable_widths[old_index] = just_left_letter.size().width
+    cache_1_renderable_widths[new_index] = just_entered_letter.size().width
+  }
+  
+  fileprivate func move_indicator(_ index: Int) {
+    let start_point = cache_2_letter_start_points[index]
+    let new_size = CGSize(width: cache_1_renderable_widths[index], height: slideIndicatorThickness)
+    let new_origin = CGPoint(
+      x: horizontalInset + cache_2_horiz_center_offset + start_point,
+      y: bounds.height - slideIndicatorThickness
+    )
     slideIndicator.frame = CGRect(origin: new_origin, size: new_size)
+  }
+  
+  // Note: x_loc is a CGPoint x value within content_width's coord system.
+  fileprivate func set_value_from_touch(_ x_loc: CGFloat) {
+    let working_x = x_loc - horizontalInset - cache_2_horiz_center_offset
+    let found_index = cache_2_letter_start_points.reduce(-1, { the_index, left_bound in
+    guard left_bound < working_x else { return the_index }
+    return the_index + 1
+    })
+    value = found_index
+  }
+  
 
-    
-    // Re-render the text with the new selected index.
-    setNeedsDisplay()
-
-    // Skip the update event if an external object has set our value;
-    // we wouldn't want to cause a loop (sending them a valueChanged notification,
-    // which in turn causes them to update their collectionview, which in
-    // turn updates our value, which in turn sends a valueChanged notification....
-    guard userIsUsing && !scrollViewIsUsing else { return }
-    
-    // Send the event notification.
-    self.sendActions(for: .valueChanged)
-  } }
-	
-	// After we draw the letters, we know how wide each one is.  Store
-	// those values here, so we can use them to properly position the
-	// selection indicator.
-	fileprivate var cache_1_renderable_widths = [CGFloat]()
-	
-	fileprivate var slideIndicator: CALayer!
-	
-	fileprivate var workingWidth: CGFloat {
-		return bounds.width - (horizonalInset * 2)
-	}
-	
-	// Calculate spacing per letter that will automatically center the text.
-	fileprivate var workingWidthPerLetter: CGFloat {
-		return workingWidth / CGFloat(alphabet.count + 1)
-	}
-	
 	
 	
 	// MARK: UIControl overrides
 	
 	open override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
 		super.beginTracking(touch, with: event)
-    
-    // If there are no letters in the alphabet, dragging can do nothing.
     guard alphabet.count > 0 else { return false }
-    
-    // Lock out UIScrollView events from affecting our value.
 		userIsUsing = true
-
-    // There are two coordinate systems within AlphabetSlider: one is the "absolute" grid
-    // imposed by view.bounds, used by UIKit functions...
-    let absolute_x = touch.location(in: self).x
-    
-    // Converting between the two is a matter of subtracting off the inset (around the
-    // whole thing) and the extra 1/2 character spacing added on either side by
-    // workingWidthPerLetter.
-    let working_x = absolute_x - horizonalInset - workingWidthPerLetter / 2
-    
-    // Since our internalValue ranges between 0.0 and Double(alphabet.count - 1), divide
-    // the x point units by the point unit per letter, to get the letter we are on.
-		internalValue = Double(working_x / workingWidthPerLetter)
-    
-    // Set previous location, for the next UIKit continueTracking call.
-    previousLocation = touch.location(in: self)
-    
+    set_value_from_touch(touch.location(in: self).x)
 		return true
 	}
 	
 	open override func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
 		super.continueTracking(touch, with: event)
-    
-    // If there are no letters in the alphabet, dragging can do nothing.
     guard alphabet.count > 0 else { return false }
-    
-		let absolute_x = touch.location(in: self).x
-		
-		// If the touch was out-of-bounds, end tracking.
-		guard (
-      absolute_x > horizonalInset - workingWidthPerLetter / 2 &&
-      absolute_x < bounds.width - horizonalInset
-    ) else { return false }
-		
-		// Track how much the user has dragged, in global coordinate space.
-		let delta_x = absolute_x - previousLocation.x
-		
-		// Convert the X movement (in units of dotpoints) into units of letter movement
-    // from 0.0 to CGFloat(alphabet.count - 1).
-    // NOTE: workingWidth does not take inot account the 1/2 letter width spacing on
-    // either side of the slider, so add it back in.
-		let delta_letter = delta_x * (CGFloat(alphabet.count) + 1) / workingWidth
-		internalValue += Double(delta_letter)
-    
-    // Set state for next UIKit call to continueTracking.
-    previousLocation = touch.location(in: self)
-    
+    set_value_from_touch(touch.location(in: self).x)
 		return true
 	}
 	
@@ -276,16 +267,14 @@ open class AlphabetSlider: UIControl {
 		// Paint over our previous drawing.
 		backgroundColor?.setFill()
   
-    let bogus_height: CGFloat = self.font.lineHeight
     let letter_width_pairs = zip(cache_0_renderables, cache_1_renderable_widths)
     
-    var x_offset: CGFloat = 0.0
+    var x_offset: CGFloat = horizontalInset + cache_2_horiz_center_offset
 		for pair in letter_width_pairs {
       let (letter, width) = pair
-			let yPosition = bounds.height / 2 - baselineOffset - bogus_height / 2
-			let xPosition = x_offset + horizonalInset
-			letter.draw(in: CGRect(origin: CGPoint(x: xPosition, y: yPosition), size: CGSize(width: width, height: bogus_height)))
-      x_offset += width
+			let y_offset = bounds.height / 2 - baselineOffset - font.lineHeight / 2
+			letter.draw(in: CGRect(origin: CGPoint(x: x_offset, y: y_offset), size: CGSize(width: width, height: font.lineHeight)))
+      x_offset = x_offset + width + letter_spacing
 		}
 	}
 }
