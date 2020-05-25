@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "AlphabetSlider"
-  s.version      = "3.0.0"
+  s.version      = "3.0.5"
   s.summary      = "Provides an incremental slider for arbitary string values."
 
   s.description  = <<-DESC
