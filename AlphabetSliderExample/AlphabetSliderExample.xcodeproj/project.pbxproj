@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		645E57B6247C3F8400802A24 /* AlphabetSlider.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 645E57B5247C3F8400802A24 /* AlphabetSlider.framework */; };
+		641FFA95247C64A800652AAD /* AlphabetSlider.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 641FFA94247C64A800652AAD /* AlphabetSlider.framework */; };
 		648C5D331D2180EA0020CD3A /* AlphabetHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 648C5D321D2180EA0020CD3A /* AlphabetHeader.swift */; };
 		64B2BC8B1D1D7E9A00729647 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64B2BC8A1D1D7E9A00729647 /* AppDelegate.swift */; };
 		64B2BC8D1D1D7E9A00729647 /* ExampleController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64B2BC8C1D1D7E9A00729647 /* ExampleController.swift */; };
@@ -30,7 +30,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		645E57B5247C3F8400802A24 /* AlphabetSlider.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = AlphabetSlider.framework; sourceTree = "<group>"; };
+		641FFA94247C64A800652AAD /* AlphabetSlider.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = AlphabetSlider.framework; sourceTree = "<group>"; };
 		648C5D321D2180EA0020CD3A /* AlphabetHeader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlphabetHeader.swift; sourceTree = "<group>"; };
 		64B2BC871D1D7E9A00729647 /* AlphabetSliderExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AlphabetSliderExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		64B2BC8A1D1D7E9A00729647 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -46,7 +46,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				645E57B6247C3F8400802A24 /* AlphabetSlider.framework in Frameworks */,
+				641FFA95247C64A800652AAD /* AlphabetSlider.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -56,7 +56,7 @@
 		64B2BC7E1D1D7E9A00729647 = {
 			isa = PBXGroup;
 			children = (
-				645E57B5247C3F8400802A24 /* AlphabetSlider.framework */,
+				641FFA94247C64A800652AAD /* AlphabetSlider.framework */,
 				64B2BC891D1D7E9A00729647 /* AlphabetSliderExample */,
 				64B2BC881D1D7E9A00729647 /* Products */,
 			);
@@ -125,7 +125,7 @@
 				TargetAttributes = {
 					64B2BC861D1D7E9A00729647 = {
 						CreatedOnToolsVersion = 7.3.1;
-						LastSwiftMigration = 1010;
+						LastSwiftMigration = 1130;
 					};
 				};
 			};
@@ -134,6 +134,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -294,7 +295,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "Skyleaf-Design.AlphabetSliderExample";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_SWIFT3_OBJC_INFERENCE = On;
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -311,7 +312,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "Skyleaf-Design.AlphabetSliderExample";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_SWIFT3_OBJC_INFERENCE = On;
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
