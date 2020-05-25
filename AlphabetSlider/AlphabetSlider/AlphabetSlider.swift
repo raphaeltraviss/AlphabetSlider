@@ -90,7 +90,7 @@ open class AlphabetSlider: UIControl {
       name: fontName,
       size: fontSize
     )
-    ?? UIFont.preferredFont(forTextStyle: UIFontTextStyle.subheadline)
+    ?? UIFont.preferredFont(forTextStyle: UIFont.TextStyle.subheadline)
 	}}
 	
 	fileprivate var focusFont: UIFont { get {
@@ -98,7 +98,7 @@ open class AlphabetSlider: UIControl {
       name: focusFontName,
       size: focusFontSize
     )
-    ?? UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)
+    ?? UIFont.preferredFont(forTextStyle: UIFont.TextStyle.headline)
 	}}
 	
 	
@@ -151,11 +151,11 @@ open class AlphabetSlider: UIControl {
   
   fileprivate func rebuild_caches() {
     let normal_attr = [
-      NSForegroundColorAttributeName: fontColor,
-      NSFontAttributeName: font
+      convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): fontColor,
+      convertFromNSAttributedStringKey(NSAttributedString.Key.font): font
       ] as [String : Any]
 
-    cache_0_renderables = alphabet.map({ NSMutableAttributedString(string: $0, attributes: normal_attr) })
+    cache_0_renderables = alphabet.map({ NSMutableAttributedString(string: $0, attributes: convertToOptionalNSAttributedStringKeyDictionary(normal_attr)) })
     cache_1_renderable_widths = cache_0_renderables.map({ $0.size().width })
 
     // Next, calculate how much free space, if any, is left within the view's bounds, and
@@ -183,19 +183,19 @@ open class AlphabetSlider: UIControl {
   fileprivate func adjust_caches(old_index: Int, new_index: Int) {
     return
     let normal_attr = [
-    NSForegroundColorAttributeName: fontColor,
-    NSFontAttributeName: font
+    convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): fontColor,
+    convertFromNSAttributedStringKey(NSAttributedString.Key.font): font
     ] as [String : Any]
     let focus_attr = [
-    NSForegroundColorAttributeName: focusFontColor,
-    NSFontAttributeName: focusFont
+    convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): focusFontColor,
+    convertFromNSAttributedStringKey(NSAttributedString.Key.font): focusFont
     ] as [String : Any]
     
     let just_left_letter = cache_0_renderables[old_index]
     let just_entered_letter = cache_0_renderables[new_index]
     
     // Make the newly-entered string highlighted, and the just-exited letter normal.
-    just_left_letter.setAttributes(normal_attr, range: NSMakeRange(0, just_left_letter.length))
+    just_left_letter.setAttributes(convertToOptionalNSAttributedStringKeyDictionary(normal_attr), range: NSMakeRange(0, just_left_letter.length))
     // just_entered_letter.setAttributes(focus_attr, range: NSMakeRange(0, just_entered_letter.length))
     
     // Adjust the new widths in the cache
@@ -279,4 +279,15 @@ open class AlphabetSlider: UIControl {
       x_offset = x_offset + width + letter_spacing
 		}
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSAttributedStringKey(_ input: NSAttributedString.Key) -> String {
+	return input.rawValue
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToOptionalNSAttributedStringKeyDictionary(_ input: [String: Any]?) -> [NSAttributedString.Key: Any]? {
+	guard let input = input else { return nil }
+	return Dictionary(uniqueKeysWithValues: input.map { key, value in (NSAttributedString.Key(rawValue: key), value)})
 }

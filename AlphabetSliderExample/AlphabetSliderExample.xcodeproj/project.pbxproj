@@ -7,8 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		648C5D2F1D216F210020CD3A /* AlphabetSlider.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 648C5D2E1D216F210020CD3A /* AlphabetSlider.framework */; };
-		648C5D301D216F210020CD3A /* AlphabetSlider.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 648C5D2E1D216F210020CD3A /* AlphabetSlider.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		645E57B6247C3F8400802A24 /* AlphabetSlider.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 645E57B5247C3F8400802A24 /* AlphabetSlider.framework */; };
 		648C5D331D2180EA0020CD3A /* AlphabetHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 648C5D321D2180EA0020CD3A /* AlphabetHeader.swift */; };
 		64B2BC8B1D1D7E9A00729647 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64B2BC8A1D1D7E9A00729647 /* AppDelegate.swift */; };
 		64B2BC8D1D1D7E9A00729647 /* ExampleController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64B2BC8C1D1D7E9A00729647 /* ExampleController.swift */; };
@@ -24,7 +23,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				648C5D301D216F210020CD3A /* AlphabetSlider.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -32,7 +30,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		648C5D2E1D216F210020CD3A /* AlphabetSlider.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; name = AlphabetSlider.framework; path = "/Users/raphael/Library/Developer/Xcode/DerivedData/AlphabetSlider-eedsytkoaigowbbpjusprvaarsed/Build/Products/Debug-iphonesimulator/AlphabetSlider.framework"; sourceTree = "<absolute>"; };
+		645E57B5247C3F8400802A24 /* AlphabetSlider.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = AlphabetSlider.framework; sourceTree = "<group>"; };
 		648C5D321D2180EA0020CD3A /* AlphabetHeader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlphabetHeader.swift; sourceTree = "<group>"; };
 		64B2BC871D1D7E9A00729647 /* AlphabetSliderExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AlphabetSliderExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		64B2BC8A1D1D7E9A00729647 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -48,7 +46,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				648C5D2F1D216F210020CD3A /* AlphabetSlider.framework in Frameworks */,
+				645E57B6247C3F8400802A24 /* AlphabetSlider.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -58,7 +56,7 @@
 		64B2BC7E1D1D7E9A00729647 = {
 			isa = PBXGroup;
 			children = (
-				648C5D2E1D216F210020CD3A /* AlphabetSlider.framework */,
+				645E57B5247C3F8400802A24 /* AlphabetSlider.framework */,
 				64B2BC891D1D7E9A00729647 /* AlphabetSliderExample */,
 				64B2BC881D1D7E9A00729647 /* Products */,
 			);
@@ -127,7 +125,7 @@
 				TargetAttributes = {
 					64B2BC861D1D7E9A00729647 = {
 						CreatedOnToolsVersion = 7.3.1;
-						LastSwiftMigration = 0820;
+						LastSwiftMigration = 1010;
 					};
 				};
 			};
@@ -287,11 +285,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = AlphabetSliderExample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "Skyleaf-Design.AlphabetSliderExample";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -299,11 +302,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = AlphabetSliderExample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "Skyleaf-Design.AlphabetSliderExample";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};

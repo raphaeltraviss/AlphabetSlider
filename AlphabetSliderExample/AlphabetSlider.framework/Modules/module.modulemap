@@ -1,0 +1,11 @@
+framework module AlphabetSlider {
+  umbrella header "AlphabetSlider.h"
+
+  export *
+  module * { export * }
+}
+
+module AlphabetSlider.Swift {
+    header "AlphabetSlider-Swift.h"
+    requires objc
+}
