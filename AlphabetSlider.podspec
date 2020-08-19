@@ -12,7 +12,7 @@ DESC
   s.license      = { :type => "BSD", :file => "LICENSE.txt" }
   s.author             = { "Raphael Traviss" => "raphael@skyleafdesign.com" }
   s.platform     = :ios, "8.0"
-  s.source       = { :git => "https://github.com/raphaeltraviss/AlphabetSlider.git", :tag => "3.0.0" }
+  s.source       = { :git => "https://github.com/raphaeltraviss/AlphabetSlider.git", :tag => "3.0.7" }
 
   s.source_files  = "AlphabetSlider/AlphabetSlider"
   s.framework  = "UIKit"
