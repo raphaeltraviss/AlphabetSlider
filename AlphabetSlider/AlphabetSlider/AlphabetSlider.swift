@@ -40,10 +40,6 @@ open class AlphabetSlider: UIControl {
     // a touch event, between the UIView's bounds and the content area.
     value = min(max(value, 0), alphabet.count - 1)
     
-    // @TODO: Adjust the caches to consider the new integer boundary event,
-    // marking strings as focused and recalculating widths.
-    adjust_caches(old_index: oldValue, new_index: value)
-    
     // Move the indicator the new position, and adjust its width
     move_indicator(value)
     
@@ -178,29 +174,6 @@ open class AlphabetSlider: UIControl {
         return start_points + [start_point]
       })
     ;
-  }
-  
-  fileprivate func adjust_caches(old_index: Int, new_index: Int) {
-    return
-    let normal_attr = [
-    convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): fontColor,
-    convertFromNSAttributedStringKey(NSAttributedString.Key.font): font
-    ] as [String : Any]
-    let focus_attr = [
-    convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): focusFontColor,
-    convertFromNSAttributedStringKey(NSAttributedString.Key.font): focusFont
-    ] as [String : Any]
-    
-    let just_left_letter = cache_0_renderables[old_index]
-    let just_entered_letter = cache_0_renderables[new_index]
-    
-    // Make the newly-entered string highlighted, and the just-exited letter normal.
-    just_left_letter.setAttributes(convertToOptionalNSAttributedStringKeyDictionary(normal_attr), range: NSMakeRange(0, just_left_letter.length))
-    // just_entered_letter.setAttributes(focus_attr, range: NSMakeRange(0, just_entered_letter.length))
-    
-    // Adjust the new widths in the cache
-    cache_1_renderable_widths[old_index] = just_left_letter.size().width
-    cache_1_renderable_widths[new_index] = just_entered_letter.size().width
   }
   
   fileprivate func style_indicator() {
